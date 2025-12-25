@@ -295,8 +295,7 @@ pyinstaller calendar_and_task_add_deadline.spec
 #### 1. Tạo file `run_uth_manager.bat`:
 ```batch
 @echo off
-cd /d D:\LapTrinh\PYTHON\APPS\calendar_and_task_add_deadline
-python main.py
+cd /main.py
 pause
 ```
 
@@ -347,8 +346,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 👨‍💻 Tác Giả
 
 **Duy & AI**
-- 📧 Email: your.email@example.com
-- 🐙 GitHub: [@yourusername](https://github.com/yourusername)
+- 📧 Email: duynd2971@gmai.com
+- 🐙 GitHub: [@duynam2802](https://github.com/duynam2802)
 
 ---
 

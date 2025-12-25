@@ -2,6 +2,7 @@
 
 import json
 import time
+import sys
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
 from datetime import datetime
@@ -43,7 +44,19 @@ def get_credentials():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            # Support both dev and bundled exe paths for credentials
+            if getattr(sys, 'frozen', False):
+                # Running as compiled exe - check bundled location first
+                base_path = sys._MEIPASS
+                cred_path = os.path.join(base_path, 'credentials.json')
+                if not os.path.exists(cred_path):
+                    # Fallback to current directory
+                    cred_path = 'credentials.json'
+            else:
+                # Running as script
+                cred_path = 'credentials.json'
+            
+            flow = InstalledAppFlow.from_client_secrets_file(cred_path, SCOPES)
             creds = flow.run_local_server(port=0)
         with open('token.json', 'w') as token_file:
             token_file.write(creds.to_json())
@@ -432,9 +445,24 @@ class RoundedFrame(tk.Canvas):
 class CalendarTaskApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("UTH Calendar & Task Manager")
+        self.root.title("UTH Sync Task")
         self.root.geometry("1100x700")
         self.root.resizable(True, True)
+        
+        # Set icon for window and taskbar
+        try:
+            if getattr(sys, 'frozen', False):
+                # Running as compiled executable
+                base_path = sys._MEIPASS
+            else:
+                # Running as script
+                base_path = os.path.dirname(os.path.abspath(__file__))
+            
+            icon_path = os.path.join(base_path, "img", "uth_synctask_logo.ico")
+            if os.path.exists(icon_path):
+                root.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Could not set icon: {e}")
         
         # Set color scheme - Màu chủ đạo #018486
         self.colors = {
@@ -462,7 +490,14 @@ class CalendarTaskApp:
         self.logo_image = None
         try:
             from PIL import Image, ImageTk, ImageDraw
-            logo_path = "img/ut-logo.png"
+            
+            # Get correct path for logo
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.dirname(os.path.abspath(__file__))
+            
+            logo_path = os.path.join(base_path, "img", "ut-logo.png")
             img = Image.open(logo_path)
             img = img.resize((150, 50), Image.Resampling.LANCZOS)
             self.logo_image = ImageTk.PhotoImage(img)

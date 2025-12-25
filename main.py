@@ -29,7 +29,7 @@ SCOPES = [
 ]
 
 # Version
-APP_VERSION = "v2.3.1"
+APP_VERSION = "v2.3.2"
 APP_DATE = "2025-12-25"
 
 
@@ -70,7 +70,11 @@ def get_calendar_service(creds):
     return build('calendar', 'v3', credentials=creds)
 
 def list_tasks(service, tasklist_id='@default'):
-    result = service.tasks().list(tasklist=tasklist_id).execute()
+    result = service.tasks().list(
+        tasklist=tasklist_id,
+        showCompleted=True,
+        showHidden=True
+    ).execute()
     return result.get('items', [])
 
 def get_existing_tasks_dict(service, tasklist_id='@default'):

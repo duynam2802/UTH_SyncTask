@@ -1,5 +1,14 @@
 # 📝 Nhật Ký Phiên Bản - UTH Calendar & Task Manager
 
+## [v2.3.2] - 2025-12-25
+
+### 🔧 Sửa Lỗi & Cải Tiến
+- **Kiểm tra task đã hoàn thành**: Không thêm lại task đã tồn tại (kể cả đã hoàn thành)
+  - Thêm `showCompleted=True` và `showHidden=True` vào API call
+  - Tránh trùng lặp task trong Google Tasks
+
+---
+
 ## [v2.3.1] - 2025-12-25
 
 ### 🔧 Sửa Lỗi & Cải Tiến

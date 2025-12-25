@@ -1,6 +1,6 @@
 # 🚀 UTH SyncTask - Hướng Dẫn Sử Dụng (Portable Version)
 
-![Version](https://img.shields.io/badge/version-v2.3.1-018486?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v2.3.2-018486?style=for-the-badge)
 
 **Phiên bản portable - Chạy trực tiếp không cần cài Python**
 
@@ -233,4 +233,4 @@ MIT License - Xem [LICENSE](LICENSE) để biết thêm chi tiết
 
 Developed for **University of Transport Ho Chi Minh City (UTH)**
 
-**Latest**: v2.3.1 (2025-12-25)
+**Latest**: v2.3.2 (2025-12-25)

@@ -29,7 +29,7 @@ SCOPES = [
 ]
 
 # Version
-APP_VERSION = "v2.3.0"
+APP_VERSION = "v2.3.1"
 APP_DATE = "2025-12-25"
 
 
@@ -103,8 +103,10 @@ def get_study_calendar_id(service):
     for cal in calendars:
         if cal.get('summary') == 'Study' or cal.get('summary') == 'Studys':  # tên lịch
             return cal.get('id')
-    print("[ERR] Không tìm thấy calendar tên 'Study'")
-    return None
+    
+    # Nếu không tìm thấy, trả về primary calendar (lịch mặc định)
+    print("[WARN] Không tìm thấy calendar tên 'Study', sẽ sử dụng lịch mặc định")
+    return 'primary'
 
 
 def get_existing_events_dict(service, calendar_id, start_date=None, end_date=None):
@@ -967,13 +969,13 @@ class CalendarTaskApp:
                 calendar_service = get_calendar_service(creds)
                 self.log("✓ Đã kết nối Google Calendar")
                 study_calendar_id = get_study_calendar_id(calendar_service)
-                if study_calendar_id:
-                    self.log("✓ Đã tìm thấy calendar 'Study'")
-                    self.log("📥 Đang tải danh sách events hiện có...")
-                    existing_events = get_existing_events_dict(calendar_service, study_calendar_id)
-                    self.log(f"✓ Đã tải {len(existing_events)} events hiện có")
+                if study_calendar_id == 'primary':
+                    self.log("⚠ Không tìm thấy calendar 'Study', sẽ thêm vào lịch mặc định")
                 else:
-                    self.log("⚠ Không tìm thấy calendar 'Study', bỏ qua thêm events")
+                    self.log("✓ Đã tìm thấy calendar 'Study'")
+                self.log("📥 Đang tải danh sách events hiện có...")
+                existing_events = get_existing_events_dict(calendar_service, study_calendar_id)
+                self.log(f"✓ Đã tải {len(existing_events)} events hiện có")
             
             # Process events
             self.log("\n" + "=" * 60)

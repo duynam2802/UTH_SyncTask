@@ -3,7 +3,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-v2.3.0-018486?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v2.3.1-018486?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
@@ -365,7 +365,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Xem chi tiết các phiên bản tại [CHANGELOG.md](CHANGELOG.md)
 
-**Latest**: v2.3.0 (2025-12-25)
+**Latest**: v2.3.1 (2025-12-25)
 - ✨ Lưu credentials trong .env với python-dotenv
 - 🔒 Nâng cấp mã hóa: XOR cipher + machine-specific key
 - 🛡️ Tài liệu bảo mật đầy đủ (SECURITY.md)

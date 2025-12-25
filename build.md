@@ -21,7 +21,8 @@ pyinstaller build_exe.spec
 
 ### Cách 2: Build trực tiếp với command line
 ```bash
-pyinstaller --noconsole --onefile --icon="img/uth_synctask_logo.ico" --add-data "img;img" --add-data "credentials.json;." main.py
+pyinstaller --noconsole --onefile --name UTH_SyncTask --icon="img/uth_synctask_logo.ico" --add-data "img;img" --add-data "credentials.json;." main.py
+
 ```
 
 ## Sau Khi Build

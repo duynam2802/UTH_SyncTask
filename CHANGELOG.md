@@ -1,5 +1,18 @@
 # 📝 Nhật Ký Phiên Bản - UTH Calendar & Task Manager
 
+## [v2.3.1] - 2025-12-25
+
+### 🔧 Sửa Lỗi & Cải Tiến
+- **Icon hiển thị trong exe**: Sửa đường dẫn icon và logo khi build với PyInstaller
+  - Sử dụng `sys._MEIPASS` để load đúng đường dẫn khi chạy exe
+  - Icon taskbar và title bar hiển thị chính xác
+  - Logo PNG trong header hiển thị đúng
+- **Lịch mặc định**: Tự động thêm vào lịch mặc định (primary) nếu không tìm thấy calendar "Study"
+  - Không còn bỏ qua events khi không tìm thấy lịch Study
+  - Log rõ ràng khi sử dụng lịch mặc định
+
+---
+
 ## [v2.3.0] - 2025-12-25
 
 ### ✨ Tính Năng Mới

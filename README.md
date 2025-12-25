@@ -80,8 +80,8 @@ python-dotenv>=1.0.0
 
 ### Bước 1: Clone Repository
 ```bash
-git clone https://github.com/yourusername/uth-calendar-manager.git
-cd uth-calendar-manager
+git clone https://github.com/duynam2802/UTH_SyncTask
+cd UTH_SyncTask
 ```
 
 ### Bước 2: Cài Đặt Dependencies
@@ -144,7 +144,7 @@ python main.py
 #### 2️⃣ **Nhập Thông Tin UTH**
 - **MSSV**: Mã số sinh viên của bạn
 - **Mật khẩu**: Password đăng nhập hệ thống UTH
-- ✅ Tick "💾 Lưu thông tin đăng nhập" để lưu (mã hóa)
+- ✅ Tick "💾 Lưu thông tin đăng nhập" để lưu
 
 #### 3️⃣ **Chọn Tùy Chọn**
 - ☑️ **Chạy ẩn trình duyệt**: Chạy Chrome ở chế độ headless
@@ -193,26 +193,9 @@ calendar_and_task_add_deadline/
 
 ### Thông Tin Được Mã Hóa
 - **MSSV & Password**: Mã hóa XOR + machine-specific key trong `.env`
-- **Google Token**: Lưu trong `token.json` (không commit lên Git)
+- **Google Token**: Lưu trong `token.json`
 - **Machine-specific**: Credentials chỉ giải mã được trên máy đã mã hóa
 
-### Bảo Vệ Dữ Liệu
-```gitignore
-# Đã có trong .gitignore
-.env
-.env.local
-.env.*.local
-credentials.json
-token.json
-.uth_credentials
-uth_login.json
-```
-
-### Best Practices
-- ✅ Không chia sẻ `credentials.json` và `token.json`
-- ✅ Chỉ cấp quyền cần thiết cho Google API
-- ✅ Đổi password định kỳ
-- ✅ Xóa token khi không sử dụng: `del token.json`
 
 ---
 
@@ -329,7 +312,7 @@ Contributions are welcome!
 5. Mở Pull Request
 
 ### Báo Lỗi
-Mở [Issue](https://github.com/yourusername/uth-calendar-manager/issues) với:
+Mở [Issue](https://github.com/duynam2802/UTH_SyncTask/issues) với:
 - 🐛 Mô tả lỗi chi tiết
 - 📸 Screenshot (nếu có)
 - 💻 Môi trường (OS, Python version, Chrome version)

@@ -1,5 +1,55 @@
 # 📝 Nhật Ký Phiên Bản - UTH Calendar & Task Manager
 
+## [v2.3.3] - 2025-12-31
+
+### 🔧 Sửa Lỗi Quan Trọng
+- **Sửa lỗi thêm task trùng lặp**: Task cùng tên và ngày deadline sẽ không bị thêm lại
+  - Thay đổi key từ `title` sang `title|date` để kiểm tra chính xác hơn
+  - Xử lý đúng cả tasks không có due date (lưu với key `title|NO_DATE`)
+  - Logic kiểm tra task giống hệt logic events (đã hoạt động tốt)
+
+- **Sửa lỗi không lấy hết tasks từ API**: Thêm pagination để lấy tất cả tasks
+  - Trước: Chỉ lấy mặc định (~20 tasks đầu tiên)
+  - Sau: Dùng `pageToken` để lấy tất cả tasks (100 tasks/page)
+  - Giải quyết vấn đề không tìm thấy tasks trùng khi xóa
+
+### ✨ Tính Năng Mới
+- **Tính năng dọn dẹp tasks trùng**: Thêm button "🧹 DỌN DẸP TASKS TRÙNG"
+  - Tự động quét và xóa các tasks trùng lặp (cùng title + deadline)
+  - Giữ lại task cũ nhất, xóa các tasks trùng sau
+  - Hiển thị chi tiết số lượng tasks trùng và kết quả xóa
+  - Xác nhận trước khi xóa để tránh nhầm
+
+### 📖 Cải Tiến Logs
+- **Logs chi tiết cho chức năng xóa trùng**: Hiển thị đầy đủ thông tin trong GUI
+  - Hiển thị số lượng tasks tải được từ API
+  - Hiển thị số nhóm tasks và số nhóm trùng
+  - Hiển thị thông tin từng nhóm trùng (tên, ngày, số lượng)
+  - Hiển thị kết quả xóa từng task
+  - Logs đẹp với icons và màu sắc
+
+- **Cải thiện logs khi sync tasks**: Rõ ràng hơn
+  - Hiển thị số lượng tasks đã cache để kiểm tra trùng
+  - Hiển thị thông tin debug key format (khi cần)
+
+### 🛠️ Cải Tiến Kỹ Thuật
+- **Refactor code**: Tách biệt logic vào các hàm nhỏ
+  - Thêm `log_callback` parameter cho các hàm API
+  - Logs từ background tasks hiển thị trực tiếp trong GUI
+  - Dễ bảo trì và mở rộng
+
+- **Script debug**: Thêm `debug_tasks.py` để kiểm tra tasks trực tiếp
+  - Kiểm tra tasks trùng lặp
+  - Hiển thị chi tiết cấu trúc tasks
+  - Dùng để debug và kiểm tra logic
+
+### 🐛 Bug Fixes
+- Sửa lỗi format ngày không khớp khi so sánh tasks
+- Sửa lỗi đồng bộ data structure giữa `get_existing_tasks_dict` và khi thêm task mới
+- Sửa lỗi UI button "DỌN DẸP TASKS TRÙNG" không enable lại sau khi hoàn thành
+
+---
+
 ## [v2.3.2] - 2025-12-25
 
 ### 🔧 Sửa Lỗi & Cải Tiến

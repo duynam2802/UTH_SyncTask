@@ -3,7 +3,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-v2.3.2-018486?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v2.3.3-018486?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
@@ -23,7 +23,8 @@
 - 🎨 **Giao diện hiện đại**: UI đẹp mắt với màu chủ đạo UTH (#018486)
 - 🔒 **Bảo mật cao cấp**: Mã hóa XOR + machine-specific key, lưu trong .env
 - ⚡ **Tự động hóa hoàn toàn**: Crawl và đồng bộ chỉ với 1 click
-- 🔄 **Tránh trùng lặp**: Kiểm tra thông minh trước khi thêm
+- 🔄 **Tránh trùng lặp**: Kiểm tra thông minh trước khi thêm (title + date)
+- 🧹 **Dọn dẹp tự động**: Xóa tasks trùng lặp với 1 click
 - 🎛️ **Linh hoạt**: Tùy chọn chạy ẩn, chỉ thêm Calendar hoặc Tasks
 - 📝 **Quản lý .env**: Credentials được lưu an toàn trong .env file
 
@@ -36,7 +37,9 @@
 - ✅ **Crawl deadline thông minh**: Lấy toàn bộ sự kiện từ calendar môn học
 - ✅ **Đồng bộ Google Calendar**: Thêm vào lịch "Study" tự động
 - ✅ **Đồng bộ Google Tasks**: Tạo task với deadline rõ ràng
-- ✅ **Kiểm tra trùng lặp**: Cache và so sánh để tránh duplicate
+- ✅ **Kiểm tra trùng lặp thông minh**: So sánh cả title và ngày deadline
+- ✅ **Dọn dẹp tasks trùng**: Tự động quét và xóa tasks trùng lặp với 1 click
+- ✅ **Pagination thông minh**: Lấy toàn bộ tasks từ Google API (không bỏ sót)
 - ✅ **Lưu thông tin đăng nhập**: Mã hóa XOR + machine-specific key trong .env
 - ✅ **Quản lý credentials**: Sử dụng python-dotenv cho .env file
 
@@ -44,15 +47,17 @@
 - 🖼️ Logo UTH hiển thị đẹp mắt
 - 🎨 Bo góc mềm mại cho tất cả component
 - 🔘 Button với hover effect chuyên nghiệp
-- 📝 Nhật ký real-time với emoji động
+- 📝 Nhật ký real-time với emoji động và logs chi tiết
 - 📊 Thanh trạng thái hiển thị tiến trình
 - 🌈 Color scheme đồng nhất với UTH branding
+- 🧹 Button dọn dẹp tasks trùng với màu vàng cam nổi bật
 
 ### ⚙️ Tùy Chọn
 - 👁️ **Chạy ẩn trình duyệt**: Headless mode (Chrome)
 - 📅 **Thêm vào Google Calendar**: Bật/tắt đồng bộ Calendar
 - ✅ **Thêm vào Google Tasks**: Bật/tắt đồng bộ Tasks
 - 💾 **Lưu thông tin đăng nhập**: Tự động điền lần sau
+- 🧹 **Dọn dẹp tasks trùng**: Xóa tasks trùng lặp (cùng tên + ngày)
 
 ---
 

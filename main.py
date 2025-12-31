@@ -29,8 +29,8 @@ SCOPES = [
 ]
 
 # Version
-APP_VERSION = "v2.3.2"
-APP_DATE = "2025-12-25"
+APP_VERSION = "v2.3.3"
+APP_DATE = "2025-12-31"
 
 
 def get_credentials():
@@ -69,23 +69,63 @@ def get_tasks_service(creds):
 def get_calendar_service(creds):
     return build('calendar', 'v3', credentials=creds)
 
-def list_tasks(service, tasklist_id='@default'):
-    result = service.tasks().list(
-        tasklist=tasklist_id,
-        showCompleted=True,
-        showHidden=True
-    ).execute()
-    return result.get('items', [])
+def list_tasks(service, tasklist_id='@default', log_callback=None):
+    """Lấy TẤT CẢ tasks từ Google Tasks (bao gồm cả completed và hidden)"""
+    all_tasks = []
+    page_token = None
+    log = log_callback if log_callback else print
+    
+    while True:
+        try:
+            result = service.tasks().list(
+                tasklist=tasklist_id,
+                showCompleted=True,
+                showHidden=True,
+                maxResults=100,  # Lấy tối đa mỗi lần
+                pageToken=page_token
+            ).execute()
+            
+            tasks = result.get('items', [])
+            all_tasks.extend(tasks)
+            
+            # Lấy page token để lấy tiếp trang sau
+            page_token = result.get('nextPageToken')
+            if not page_token:
+                break  # Hết tasks rồi
+                
+        except Exception as e:
+            log(f"❌ Lỗi khi lấy tasks: {e}")
+            break
+    
+    log(f"📊 Đã tải {len(all_tasks)} tasks từ Google Tasks API")
+    return all_tasks
 
-def get_existing_tasks_dict(service, tasklist_id='@default'):
+def get_existing_tasks_dict(service, tasklist_id='@default', log_callback=None):
     """Lấy tất cả tasks hiện có và cache thành dict để tra cứu nhanh"""
-    tasks = list_tasks(service, tasklist_id)
-    # Trả về dict với key là title của task
-    return {task.get('title'): task for task in tasks if task.get('title')}
+    tasks = list_tasks(service, tasklist_id, log_callback)
+    log = log_callback if log_callback else print
+    # Trả về dict với key là "title|date" để kiểm tra chính xác
+    tasks_dict = {}
+    for task in tasks:
+        title = task.get('title')
+        if not title:
+            continue
+        # Lấy ngày due, format: 2025-12-31T23:59:59.000Z -> 2025-12-31
+        due = task.get('due', '')
+        date = due[:10] if due else 'NO_DATE'
+        key = f"{title}|{date}"
+        tasks_dict[key] = task
+    log(f"✓ Đã tạo dictionary với {len(tasks_dict)} tasks duy nhất")
+    return tasks_dict
 
-def is_task_added(existing_tasks_dict, title):
-    """Kiểm tra task đã tồn tại từ dict đã cache"""
-    return title in existing_tasks_dict
+def is_task_added(existing_tasks_dict, title, date):
+    """Kiểm tra task đã tồn tại từ dict đã cache (so sánh cả title và date)"""
+    key = f"{title}|{date}"
+    exists = key in existing_tasks_dict
+    # Debug: in ra để kiểm tra (chỉ in khi tìm thấy)
+    if exists:
+        print(f"[DEBUG] Task đã tồn tại: {key}")
+    return exists
 
 def add_task(service, title, due_date, note=None, tasklist_id='@default'):
     task_body = {
@@ -101,6 +141,74 @@ def add_task(service, title, due_date, note=None, tasklist_id='@default'):
     except Exception as e:
         print(f"[ERR] Lỗi khi thêm task {title}: {e}")
         return False
+
+def remove_duplicate_tasks(service, tasklist_id='@default', log_callback=None):
+    """Xóa các task trùng lặp (cùng title và due date), giữ lại task cũ nhất"""
+    log = log_callback if log_callback else print
+    try:
+        log("\n🔍 Bắt đầu quét tasks trùng lặp...")
+        tasks = list_tasks(service, tasklist_id, log_callback)
+        
+        if len(tasks) == 0:
+            log("⚠ Không có tasks nào để kiểm tra")
+            return 0
+        
+        # Nhóm tasks theo key "title|date"
+        log("🔄 Đang phân tích và nhóm tasks...")
+        task_groups = {}
+        for task in tasks:
+            title = task.get('title')
+            if not title:
+                continue
+            due = task.get('due', '')
+            date = due[:10] if due else 'NO_DATE'
+            key = f"{title}|{date}"
+            
+            if key not in task_groups:
+                task_groups[key] = []
+            task_groups[key].append(task)
+        
+        log(f"✓ Đã phân tích thành {len(task_groups)} nhóm tasks")
+        
+        # Xóa các task trùng (giữ lại task đầu tiên - task cũ nhất)
+        deleted_count = 0
+        duplicate_groups = 0
+        
+        log("\n🗑️ Bắt đầu xóa tasks trùng lặp...")
+        for key, group in task_groups.items():
+            if len(group) > 1:
+                duplicate_groups += 1
+                # Rút ngắn title nếu quá dài
+                display_title = key.split('|')[0]
+                if len(display_title) > 40:
+                    display_title = display_title[:37] + "..."
+                log(f"\n⚠ Tìm thấy {len(group)} tasks trùng:")
+                log(f"   📌 {display_title}")
+                log(f"   📅 Ngày: {key.split('|')[1]}")
+                
+                # Giữ lại task đầu tiên, xóa các task còn lại
+                for idx, task in enumerate(group[1:], 1):
+                    task_id = task.get('id')
+                    try:
+                        service.tasks().delete(tasklist=tasklist_id, task=task_id).execute()
+                        log(f"   ✓ Đã xóa task trùng #{idx}")
+                        deleted_count += 1
+                    except Exception as e:
+                        log(f"   ✗ Lỗi xóa task #{idx}: {e}")
+        
+        log("\n" + "="*60)
+        if duplicate_groups == 0:
+            log("✅ Không tìm thấy tasks trùng lặp!")
+        else:
+            log(f"✅ Hoàn thành! Tìm thấy {duplicate_groups} nhóm trùng")
+            log(f"✅ Đã xóa thành công {deleted_count}/{deleted_count} tasks trùng lặp")
+        log("="*60)
+        return deleted_count
+    except Exception as e:
+        log(f"\n❌ Lỗi khi xóa tasks trùng: {e}")
+        import traceback
+        log(traceback.format_exc())
+        return 0
 
 def get_study_calendar_id(service):
     calendars = service.calendarList().list().execute().get('items', [])
@@ -639,14 +747,14 @@ class CalendarTaskApp:
                       selectcolor=self.colors['light'],
                       activebackground=self.colors['light']).pack(anchor="w", pady=2)
         
-        # Control buttons - 2 buttons cùng hàng
+        # Control buttons - 3 buttons (2 hàng)
         btn_container = RoundedFrame(
             left_panel,
             radius=12,
             bg_color=self.colors['light'],
             border_color=self.colors['border'],
             border_width=1,
-            height=70          # tăng nhẹ để dư không gian bo góc
+            height=120          # tăng để chứa 2 hàng buttons
         )
         btn_container.pack(fill="x", pady=(0, 8))
         btn_container.pack_propagate(False)
@@ -658,6 +766,7 @@ class CalendarTaskApp:
         btn_frame.columnconfigure(0, weight=1)
         btn_frame.columnconfigure(1, weight=1)
         btn_frame.rowconfigure(0, weight=1)
+        btn_frame.rowconfigure(1, weight=1)
 
         self.start_btn = RoundedButton(
             btn_frame,
@@ -673,7 +782,7 @@ class CalendarTaskApp:
             column=0,
             sticky="nsew",
             padx=(0, 6),
-            pady=4            
+            pady=(4, 4)            
         )
 
         self.stop_btn = RoundedButton(
@@ -690,7 +799,26 @@ class CalendarTaskApp:
             column=1,
             sticky="nsew",
             padx=(6, 0),
-            pady=4            
+            pady=(4, 4)            
+        )
+        
+        # Button xóa tasks trùng - hàng thứ 2
+        self.cleanup_btn = RoundedButton(
+            btn_frame,
+            text="🧹 DỌN DẸP TASKS TRÙNG",
+            command=self.cleanup_duplicate_tasks,
+            radius=10,
+            bg_color="#f59e0b",  # màu vàng cam
+            hover_color="#d97706",
+            font=("Segoe UI", 9, "bold")
+        )
+        self.cleanup_btn.grid(
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="nsew",
+            padx=0,
+            pady=(4, 4)            
         )
         self.stop_btn.config(state="disabled")
 
@@ -867,6 +995,64 @@ class CalendarTaskApp:
         self.stop_btn.config_colors(bg_color="#9ca3af", state="disabled")
         self.log("⏹ [STOP] Đã dừng quá trình")
         self.set_status("Đã dừng")
+    
+    def cleanup_duplicate_tasks(self):
+        """Dọn dẹp tasks trùng lặp"""
+        if self.is_running:
+            messagebox.showwarning("Đang chạy", "Vui lòng dừng quá trình trước khi dọn dẹp!")
+            return
+        
+        result = messagebox.askyesno(
+            "Xác nhận",
+            "Bạn có chắc muốn xóa các tasks trùng lặp?\n\n"
+            "⚠️ Lưu ý: Các tasks có cùng tên và ngày deadline sẽ bị xóa,\n"
+            "chỉ giữ lại task đầu tiên (task cũ nhất)."
+        )
+        
+        if not result:
+            return
+        
+        self.cleanup_btn.config_colors(bg_color="#9ca3af", state="disabled")
+        self.set_status("🧹 Đang dọn dẹp tasks trùng...")
+        self.log("\n" + "="*60)
+        self.log("🧹 BẮT ĐẦU DỌN DẸP TASKS TRÙNG LẶP")
+        self.log("="*60)
+        
+        # Chạy trong thread riêng
+        thread = Thread(target=self._run_cleanup, daemon=True)
+        thread.start()
+    
+    def _run_cleanup(self):
+        """Thread worker để dọn dẹp tasks"""
+        try:
+            self.log("🔑 Đang xác thực với Google...")
+            creds = get_credentials()
+            tasks_service = get_tasks_service(creds)
+            self.log("✓ Đã kết nối Google Tasks\n")
+            
+            # Truyền self.log làm callback để ghi log vào GUI
+            deleted = remove_duplicate_tasks(tasks_service, log_callback=self.log)
+            
+            self.set_status(f"✅ Đã xóa {deleted} tasks trùng")
+            
+            if deleted > 0:
+                messagebox.showinfo(
+                    "Hoàn thành",
+                    f"Đã xóa thành công {deleted} tasks trùng lặp!\n\n"
+                    "Vui lòng kiểm tra lại Google Tasks."
+                )
+            else:
+                messagebox.showinfo("Hoàn thành", "Không tìm thấy tasks trùng lặp!")
+                
+        except Exception as e:
+            error_msg = f"Lỗi khi dọn dẹp: {str(e)}"
+            self.log(f"\n❌ {error_msg}")
+            self.set_status("❌ Lỗi khi dọn dẹp")
+            messagebox.showerror("Lỗi", error_msg)
+            import traceback
+            self.log(traceback.format_exc())
+        finally:
+            self.cleanup_btn.config_colors(bg_color="#f59e0b", state="normal")
         
     def run_process(self, mssv, password):
         """Logic chính để crawl và thêm events/tasks"""
@@ -966,8 +1152,8 @@ class CalendarTaskApp:
                 tasks_service = get_tasks_service(creds)
                 self.log("✓ Đã kết nối Google Tasks")
                 self.log("📥 Đang tải danh sách tasks hiện có...")
-                existing_tasks = get_existing_tasks_dict(tasks_service)
-                self.log(f"✓ Đã tải {len(existing_tasks)} tasks hiện có")
+                existing_tasks = get_existing_tasks_dict(tasks_service, log_callback=self.log)
+                self.log(f"✓ Đã cache {len(existing_tasks)} tasks để kiểm tra trùng")
             
             if self.add_events_var.get():
                 calendar_service = get_calendar_service(creds)
@@ -999,12 +1185,17 @@ class CalendarTaskApp:
                 
                 # Add Task
                 if self.add_tasks_var.get() and tasks_service:
-                    if not is_task_added(existing_tasks, event['title']):
+                    if not is_task_added(existing_tasks, event['title'], event['date']):
                         if add_task(tasks_service, event['title'], event['date'], 
                                 note=f"Sự kiện từ UTH: {event['url']}"):
                             self.log(f"➕ [MỚI] Task: {event['title']} | {event['date']}")
                             self.add_to_new_list("task", event['title'], event['date'])
-                            existing_tasks[event['title']] = True
+                            # Store task info consistently with get_existing_tasks_dict format
+                            key = f"{event['title']}|{event['date']}"
+                            existing_tasks[key] = {
+                                'title': event['title'],
+                                'due': event['date'] + 'T23:59:59.000Z'
+                            }
                             added_tasks += 1
                     else:
                         self.log(f"⊝ [CŨ] Task: {event['title']} | {event['date']}")
@@ -1018,8 +1209,12 @@ class CalendarTaskApp:
                                     event['url'], study_calendar_id):
                             self.log(f"➕ [MỚI] Event: {event['title']} | {event['date']}")
                             self.add_to_new_list("event", event['title'], event['date'])
+                            # Store event info consistently with get_existing_events_dict format
                             key = f"{event['title']}|{event['date']}"
-                            existing_events[key] = True
+                            existing_events[key] = {
+                                'summary': event['title'],
+                                'start': {'date': event['date']}
+                            }
                             added_events += 1
                     else:
                         self.log(f"⊝ [CŨ] Event: {event['title']} | {event['date']}")
